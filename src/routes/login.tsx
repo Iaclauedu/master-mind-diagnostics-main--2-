@@ -28,7 +28,12 @@ function LoginPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/diagnostico" });
+      if (data.session) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("mb_guest_mode");
+        }
+        navigate({ to: "/diagnostico" });
+      }
     });
   }, [navigate]);
 
@@ -50,6 +55,9 @@ function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+      }
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("mb_guest_mode");
       }
       navigate({ to: "/diagnostico" });
     } catch (err: any) {
@@ -140,6 +148,22 @@ function LoginPage() {
               )}
             </Button>
           </form>
+
+          {!import.meta.env.PROD && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-dashed border-white/20 text-slate-300 hover:bg-white/5 hover:text-white"
+                onClick={() => {
+                  localStorage.setItem("mb_guest_mode", "true");
+                  navigate({ to: "/" });
+                }}
+              >
+                Entrar como Convidado (Apenas Dev)
+              </Button>
+            </div>
+          )}
 
         </div>
       </div>

@@ -30,6 +30,9 @@ function AuthenticatedLayout() {
     const fetchUserAndRole = async (currentUser: User | null) => {
       setUser(currentUser);
       if (currentUser) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("mb_guest_mode");
+        }
         // Primeiro tenta recuperar a role dos metadados do Auth
         if (currentUser.user_metadata?.role) {
           setRole(currentUser.user_metadata.role);
@@ -49,6 +52,13 @@ function AuthenticatedLayout() {
       } else {
         setRole(null);
         setLoadingRole(false);
+        
+        // Redireciona para o login se não estiver em ambiente de desenvolvimento com o modo convidado ativo
+        const isProd = import.meta.env.PROD;
+        const isGuestMode = typeof window !== "undefined" && localStorage.getItem("mb_guest_mode") === "true";
+        if (isProd || !isGuestMode) {
+          navigate({ to: "/login" });
+        }
       }
     };
 
@@ -63,7 +73,7 @@ function AuthenticatedLayout() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   // Bloqueio de rotas para alunos
   useEffect(() => {
@@ -81,6 +91,7 @@ function AuthenticatedLayout() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("mb_diagnostico_respostas");
       localStorage.removeItem("mb_diagnostico_step");
+      localStorage.removeItem("mb_guest_mode");
     }
     navigate({ to: "/login" });
   };
