@@ -33,22 +33,28 @@ function AuthenticatedLayout() {
         if (typeof window !== "undefined") {
           localStorage.removeItem("mb_guest_mode");
         }
-        // Primeiro tenta recuperar a role dos metadados do Auth
-        if (currentUser.user_metadata?.role) {
-          setRole(currentUser.user_metadata.role);
-          setLoadingRole(false);
-        } else {
-          // Se não estiver no metadado, busca como fallback na tabela usuarios
-          const { data } = await supabase
+        // Busca a role primeiro na tabela usuarios do banco de dados (fonte da verdade)
+        try {
+          const { data, error } = await supabase
             .from("usuarios")
             .select("role")
             .eq("id", currentUser.id)
             .maybeSingle();
-          if (data) {
+
+          if (!error && data?.role) {
             setRole(data.role);
+            setLoadingRole(false);
+            return;
           }
-          setLoadingRole(false);
+        } catch (err) {
+          console.error("Erro ao obter a role da tabela usuarios:", err);
         }
+
+        // Se não encontrar ou falhar, usa os metadados do Auth como fallback
+        if (currentUser.user_metadata?.role) {
+          setRole(currentUser.user_metadata.role);
+        }
+        setLoadingRole(false);
       } else {
         setRole(null);
         setLoadingRole(false);
