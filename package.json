@@ -10,7 +10,8 @@
     "preview": "bun x vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test:db": "bun run test-db.js"
+    "test:db": "bun run test-db.js",
+    "commit": "git add . && git commit -m \"update\" && git push"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
